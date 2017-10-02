@@ -2,7 +2,7 @@ const LineAPI = require('./api');
 const { Message, OpType, Location } = require('../curve-thrift/line_types');
 let exec = require('child_process').exec;
 
-const myBot = ['u07bea77e0ddbe298a45f2758d834ce48','u79c68416a26d7db88b9d44042dafd4f5','u0e18f39c40973be5f201cc1b00528be4'];
+const myBot = ['u17ce7606c05a31e55cfccb35487cfbf3','ue208339c42a4e8218b04f3b7a541a6d9'];
 
 
 function isAdminOrBot(param) {
@@ -166,7 +166,7 @@ class LINE extends LineAPI {
         
         let contactMember = await this._getContacts(users);
         return contactMember.map((z) => {
-                return { displayName: z.displayName, mid: z.mid };
+                return { B };
             });
     }
 
@@ -183,20 +183,20 @@ class LINE extends LineAPI {
     }
 
     async textMessage(textMessages, seq) {
-        let [ cmd, ...payload ] = textMessages.split(' ');
-        payload = payload.join(' ');
+        let [ cmd, ...payload ] = textMessages.split('pikriacil nih');
+        payload = payload.join('pikriacil nih');
         let txt = textMessages.toLowerCase();
         let messageID = seq.id;
 
-	if(txt == '/status') {
-            let [ actions , status ] = seq.text.split(' ');
+	if(txt == 'status') {
+            let [ actions , status ] = seq.text.split('Ready');
             const action = actions.toLowerCase();
             const state = status.toLowerCase() == 'on' ? 1 : 0;
             this.stateStatus[action] = state;
             this._sendMessage(seq,`Status: \n${JSON.stringify(this.stateStatus)}`);
 	}
 
-        if(cmd == '/cancel') {
+        if(cmd == 'cancel') {
             if(payload == 'group') {
                 let groupid = await this._getGroupsInvited();
                 for (let i = 0; i < groupid.length; i++) {
@@ -209,17 +209,17 @@ class LINE extends LineAPI {
             }
         }
 
-        if(txt == '/response' || txt == '/respon') {
-            this._sendMessage(seq, 'Aira');
+        if(txt == 'halo' || txt == 'respon') {
+            this._sendMessage(seq, 'Apa bangsat');
         }
 
-	if(txt == '/keyword' || txt == '/help' || txt == '/key') {
-	    this._sendMessage(seq, '[Umum]:\n1. /respon\n2. /speed\n3. /point\n4. /check\n5. /reset\n6. /myid\n7. /open\n8. /close\n9. /join\n\n[Admin]:\n1. ak on/off\n2. ac on/off\n3. /cancel\n4. /spm\n5. /left\n\n-Safiqq-');
+	if(txt == 'keyword' || txt == 'help' || txt == 'key') {
+	    this._sendMessage(seq, '[Umum]:\n1. respon\n2. speed\n3. setpoint\n4. readby\n5. reset\n6. myid\n7. open\n8. close\n9. join\n\n[Admin]:\n1. kick on/off\n2. kick on/off\n3. cancel\n4. spm\n5. left\n\n-Pikriacil-');
 	}
 
-        if(txt == '/speed') {
+        if(txt == 'speed') {
             const curTime = (Date.now() / 1000);
-            await this._sendMessage(seq,'Processing....');
+            await this._sendMessage(seq,'pikriacil siap');
             const rtime = (Date.now() / 1000) - curTime;
             await this._sendMessage(seq, `${rtime} second(s)`);
         }
@@ -233,24 +233,24 @@ class LINE extends LineAPI {
             }
         }
 
-        if(txt == '/point') {
-            this._sendMessage(seq, `Read point telah di set!`);
+        if(txt == 'setpoint') {
+            this._sendMessage(seq, `Ready. ketik command readby`);
             this.removeReaderByGroup(seq.to);
         }
 
-        if(txt == '/reset') {
+        if(txt == 'reset') {
             this.checkReader = []
             this._sendMessage(seq, `Read point telah di reset!`);
         }
 
-	if(txt == '/tagall' && isAdminOrBot (seq.from)) {
+	if(txt == 'tagall' && isAdminOrBot (seq.from)) {
             let rec = await this._getGroup(seq.to);
             const mentions = await this.mention(rec.members);
    	    seq.contentMetadata = mentions.cmddata;
             await this._sendMessage(seq,mentions.names.join(''));
         }
 
-        if(txt == '/check'){
+        if(txt == 'readby'){
             let rec = await this.check(this.checkReader,seq.to);
             const mentions = await this.mention(rec);
             seq.contentMetadata = mentions.cmddata;
@@ -262,16 +262,16 @@ class LINE extends LineAPI {
             this._sendMessage(seq,seq.contentMetadata.mid);
         }
 	
-        const action = ['ac on','ac off','ak on','ak off']
+        const action = ['cancel on','cancel off','kick on','kick off']
         if(action.includes(txt)) {
             this.setState(seq)
         }
 	
-        if(txt == '/myid') {
+        if(txt == 'myid') {
             this._sendMessage(seq,`MID kamu: ${seq.from}`);
         }
 
-        const joinByUrl = ['/open','/close'];
+        const joinByUrl = ['open','close'];
         if(joinByUrl.includes(txt)) {
             let updateGroup = await this._getGroup(seq.to);
             updateGroup.preventJoinByTicket = true;
@@ -283,19 +283,19 @@ class LINE extends LineAPI {
             await this._updateGroup(updateGroup);
         }
 
-        if(cmd == '/join') { //untuk join group pake qrcode contoh: join line://anu/g/anu
+        if(cmd == 'join') { //untuk join group pake qrcode contoh: join line://anu/g/anu
             const [ ticketId ] = payload.split('g/').splice(-1);
             let { id } = await this._findGroupByTicket(ticketId);
             await this._acceptGroupInvitationByTicket(id,ticketId);
         }
 
-        if(cmd == '/spm' && isAdminOrBot(seq.from)) { // untuk spam invite contoh: spm <mid>
+        if(cmd == 'spm' && isAdminOrBot(seq.from)) { // untuk spam invite contoh: spm <mid>
             for (var i = 0; i < 4; i++) {
                 this._createGroup(`SPAM`,payload);
             }
         }
         
-        if(cmd == '/left' && isAdminOrBot(seq.from)) { //untuk left dari group atau spam group contoh left <alfath>
+        if(cmd == 'left' && isAdminOrBot(seq.from)) { //untuk left dari group atau spam group contoh left <alfath>
             this.leftGroupByName(payload)
         }
 
