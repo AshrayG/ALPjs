@@ -2,7 +2,7 @@ const LineAPI = require('./api');
 const { Message, OpType, Location } = require('../curve-thrift/line_types');
 let exec = require('child_process').exec;
 
-const myBot = ['u17ce7606c05a31e55cfccb35487cfbf3','ue208339c42a4e8218b04f3b7a541a6d9','u70455c9fc746ffc80776f7e35b8e38a0'];
+const myBot = ['u70455c9fc746ffc80776f7e35b8e38a0','u3e83144b0385dea6fd3837f94e5132ff'];
 
 
 function isAdminOrBot(param) {
@@ -183,8 +183,8 @@ class LINE extends LineAPI {
     }
 
     async textMessage(textMessages, seq) {
-        let [ cmd, ...payload ] = textMessages.split('pikriacil nih');
-        payload = payload.join('pikriacil nih');
+        let [ cmd, ...payload ] = textMessages.split('BOT GOBLOK NIH');
+        payload = payload.join('BOT GOBLOK NIH');
         let txt = textMessages.toLowerCase();
         let messageID = seq.id;
 
@@ -209,8 +209,8 @@ class LINE extends LineAPI {
             }
         }
 
-        if(txt == 'halo' || txt == 'respon') {
-            this._sendMessage(seq, 'Apa bangsat');
+        if(txt == 'Bot goblok?' || txt == 'respon') {
+            this._sendMessage(seq, 'GOBLOK 1 SIAP');
         }
 
 	if(txt == 'keyword' || txt == 'help' || txt == 'key') {
@@ -219,12 +219,12 @@ class LINE extends LineAPI {
 
         if(txt == 'speed') {
             const curTime = (Date.now() / 1000);
-            await this._sendMessage(seq,'pikriacil siap');
+            await this._sendMessage(seq,'wait goblok');
             const rtime = (Date.now() / 1000) - curTime;
             await this._sendMessage(seq, `${rtime} second(s)`);
         }
 
-        if(txt == 'tes' && this.stateStatus.ak == 1 && isAdminOrBot(seq.from)) {
+        if(txt == 'bkontol' && this.stateStatus.ak == 1 && isAdminOrBot(seq.from)) {
             let { listMember } = await this.searchGroup(seq.to);
             for (var i = 0; i < listMember.length; i++) {
                 if(!isAdminOrBot(listMember[i].mid)){
@@ -234,7 +234,7 @@ class LINE extends LineAPI {
         }
 
         if(txt == 'setpoint') {
-            this._sendMessage(seq, `Ready. ketik command readby`);
+            this._sendMessage(seq, `Ready. ketik command sdier untuk melihat sider`);
             this.removeReaderByGroup(seq.to);
         }
 
@@ -250,7 +250,7 @@ class LINE extends LineAPI {
             await this._sendMessage(seq,mentions.names.join(''));
         }
 
-        if(txt == 'readby'){
+        if(txt == 'sider'){
             let rec = await this.check(this.checkReader,seq.to);
             const mentions = await this.mention(rec);
             seq.contentMetadata = mentions.cmddata;
