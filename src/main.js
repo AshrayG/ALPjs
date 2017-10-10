@@ -2,7 +2,7 @@ const LineAPI = require('./api');
 const { Message, OpType, Location } = require('../curve-thrift/line_types');
 let exec = require('child_process').exec;
 
-const myBot = ['u70455c9fc746ffc80776f7e35b8e38a0','u3e83144b0385dea6fd3837f94e5132ff'];
+const myBot = ['u3e83144b0385dea6fd3837f94e5132ff','u3a352507eb3429d27d1b310198982a3d'];
 
 
 function isAdminOrBot(param) {
@@ -16,8 +16,10 @@ class LINE extends LineAPI {
         this.receiverID = '';
         this.checkReader = [];
         this.stateStatus = {
-            ac: 0,
-            ak: 0,
+            cancel: 0,
+            kick: 0,
+            autokick: 0,
+            qr: 0,
         }
     }
 
@@ -45,17 +47,17 @@ class LINE extends LineAPI {
             this.cancelAll(operation.param1);
         }
 
-        if(operation.type == 19) { //ada kick
+        if(operation.type == 19 && this.stateStatus.autokick == 1) { 
+            //ada kick
             // op1 = group nya
             // op2 = yang 'nge' kick
             // op3 = yang 'di' kick
-            if(isAdminOrBot(operation.param2)) {
+            if(!isAdminOrBot(operation.param2)) {
                 this._kickMember(operation.param1,[operation.param2]);
-                this._invite(operation.param1,[operation.param3]);
+                this._invite(operation.param1,[operation.param3]);              
             } 
 
         }
-
         if(operation.type == 55){ //ada reader
 
             const idx = this.checkReader.findIndex((v) => {
@@ -63,6 +65,19 @@ class LINE extends LineAPI {
                     return v
                 }
             })
+            if(operation.type == 15) { //Ada Leave
+// op1 = groupnya
+// op2 = yang 'telah' leave
+if(isAdminOrBot(operation.param2));
+this._inviteMember(operation.param1,[operation.param2]);
+}
+
+}
+            if(operation.type == 11 && this.stateStatus.qr == 1) {
+    if(!isAdminOrBot(operation.param2)) {
+        this._kickMember(operation.param1,[operation.param2]);
+    }
+}
             if(this.checkReader.length < 1 || idx == -1) {
                 this.checkReader.push({ group: operation.param1, users: [operation.param2], timeSeen: [operation.param3] });
             } else {
@@ -111,8 +126,8 @@ class LINE extends LineAPI {
             listPendingInvite
         }
     }
-
-    setState(seq) {
+       
+setState(seq) {
         if(isAdminOrBot(seq.from)){
             let [ actions , status ] = seq.text.split(' ');
             const action = actions.toLowerCase();
@@ -120,7 +135,7 @@ class LINE extends LineAPI {
             this.stateStatus[action] = state;
             this._sendMessage(seq,`Status: \n${JSON.stringify(this.stateStatus)}`);
         } else {
-            this._sendMessage(seq,`Kamu bukan admin.`);
+            this._sendMessage(seq,`Lu siapa goblok nyuruh2 gua`);
         }
     }
 
@@ -188,7 +203,16 @@ class LINE extends LineAPI {
         let txt = textMessages.toLowerCase();
         let messageID = seq.id;
 
-	if(txt == 'status') {
+	var protect_qr=await this._getGroup(seq.to);
+        
+        if(protect_qr.preventJoinByTicket==false&&!isAdminOrBot(seq.from))
+        {
+         this._sendMessage(seq,'Mau ngapain lu buka QR?');
+         this._kickMember(seq.to,[seq.from]);
+         protect_qr.preventJoinByTicket=true;
+         await this._updateGroup(protect_qr);
+         }
+            if(txt == 'status') {
             let [ actions , status ] = seq.text.split('Ready');
             const action = actions.toLowerCase();
             const state = status.toLowerCase() == 'on' ? 1 : 0;
@@ -209,8 +233,8 @@ class LINE extends LineAPI {
             }
         }
 
-        if(txt == 'Bot goblok?' || txt == 'respon') {
-            this._sendMessage(seq, 'GOBLOK 1 SIAP');
+        if(txt == 'Ryandika' || txt == 'respon') {
+            this._sendMessage(seq, 'ryandika siap');
         }
 
 	if(txt == 'keyword' || txt == 'help' || txt == 'key') {
@@ -219,7 +243,7 @@ class LINE extends LineAPI {
 
         if(txt == 'speed') {
             const curTime = (Date.now() / 1000);
-            await this._sendMessage(seq,'wait goblok');
+            await this._sendMessage(seq,'proses tunggu');
             const rtime = (Date.now() / 1000) - curTime;
             await this._sendMessage(seq, `${rtime} second(s)`);
         }
@@ -250,6 +274,11 @@ class LINE extends LineAPI {
             await this._sendMessage(seq,mentions.names.join(''));
         }
 
+        if(txt == 'creator') {
+         seq.contentType=13;
+            seq.contentMetadata = { mid: 'u3a352507eb3429d27d1b310198982a3d' };
+            this._client.sendMessage(1, seq);
+        }
         if(txt == 'sider'){
             let rec = await this.check(this.checkReader,seq.to);
             const mentions = await this.mention(rec);
@@ -262,7 +291,7 @@ class LINE extends LineAPI {
             this._sendMessage(seq,seq.contentMetadata.mid);
         }
 	
-        const action = ['cancel on','cancel off','kick on','kick off']
+        const action = ['cancel on','cancel off','kick on','kick off','autokick on','autokick off','qr on','qr off']
         if(action.includes(txt)) {
             this.setState(seq)
         }
